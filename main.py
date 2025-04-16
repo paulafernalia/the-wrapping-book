@@ -12,11 +12,7 @@ def main():
     generator = report_utils.CoverPageGenerator(font_config=fonts.FONTCONFIG)
 
     for carry in carries:
-        generator.create_cover_page(
-            output_path="covers",
-            carry=carry,
-            image_path="wendys_armpit_to_shoulder.png",
-        )
+        generator.create_cover_page(output_path="covers", carry=carry)
 
 if __name__ == "__main__":
     main()

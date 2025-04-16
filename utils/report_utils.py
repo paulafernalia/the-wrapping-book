@@ -9,16 +9,31 @@ from reportlab.pdfbase import pdfmetrics
 import logging
 import fonts
 import os
+from utils import image_utils
+from reportlab.platypus import Flowable
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 
+class HorizontalLine(Flowable):
+    def __init__(self, width, thickness=0.5):
+        Flowable.__init__(self)
+        self.width = width
+        self.thickness = thickness
+        self.height = thickness  # Minimal height to reserve space
+
+    def draw(self):
+        self.canv.setLineWidth(self.thickness)
+        self.canv.line(0, 0, self.width, 0)
+
+
 class CoverPageGenerator:
     """Class for generating PDF cover pages with background images and formatted text."""
 
-    def __init__(self, font_config, page_size=A4, margin=inch, text_color=(70 / 255, 70 / 255, 70 / 255)):
+    def __init__(self, font_config, page_size=A4, margin=inch, text_color=(51 / 255, 51 / 255, 51 / 255)):
         """
         Initialize the cover page generator with basic settings.
         
@@ -65,17 +80,18 @@ class CoverPageGenerator:
 
     def _draw_inset_rectangle(self, c):
 
-	    # Calculate rectangle dimensions
-	    width = self.width - 1 * self.margin
-	    height = self.height - 1 * self.margin
+        # Calculate rectangle dimensions
+        width = self.width - 1 * self.margin
+        height = self.height - 1 * self.margin
 
-	    c.setLineWidth(3) 
+        c.setLineWidth(1) 
 
-	    r, g, b = 229/255, 219/255, 219/255
-	    c.setStrokeColorRGB(r, g, b)
+        # r, g, b = 229/255, 219/255, 219/255
+        r, g, b = 51/255, 51/255, 51/255
+        c.setStrokeColorRGB(r, g, b)
 
-	    # Draw rectangle
-	    c.rect(0.5 * inch, 0.5 * inch, width, height)
+        # Draw rectangle
+        c.rect(0.5 * inch, 0.5 * inch, width, height)
     
     def _draw_background_image(self, c, image_path, opacity=0.5):
         """
@@ -86,6 +102,8 @@ class CoverPageGenerator:
             opacity (float): Opacity of the white overlay (0-1)
         """
         try:
+            # grey_image_path = image_utils.convert_to_greyscale(image_path)
+            # img = ImageReader(grey_image_path)
             img = ImageReader(image_path)
             img_width, img_height = img.getSize()
 
@@ -132,7 +150,7 @@ class CoverPageGenerator:
         title_style = ParagraphStyle(
             'TitleStyle',
             parent=styles['Heading1'],
-            fontName='NotoSerifDisplay-Medium',
+            fontName='PlayfairDisplay',
             fontSize=72,
             textColor=self.text_color,
             alignment=0,
@@ -151,7 +169,7 @@ class CoverPageGenerator:
             'SizeStyle',
             parent=styles['Normal'],
             fontName='Poppins-Light',
-            fontSize=22,
+            fontSize=28,
             textColor=self.text_color,
             alignment=0,
             leading=22,
@@ -160,7 +178,7 @@ class CoverPageGenerator:
             'SizeStyle',
             parent=styles['Normal'],
             fontName='Poppins-Light',
-            fontSize=22,
+            fontSize=18,
             textColor=self.text_color,
             alignment=0,
             leading=22,
@@ -187,17 +205,19 @@ class CoverPageGenerator:
         # Add content to the frame
         c.saveState()
         frame.addFromList([
-        	size_paragraph,
-        	Spacer(1, 70), 
+            size_paragraph,
+            Spacer(1, 70), 
             title_paragraph,
             Spacer(1, 20), 
             subtitle_paragraph,   
-            Spacer(1, 50),  
-            mmposition_paragraph,        
+            Spacer(1, 80),  
+            mmposition_paragraph,     
+            Spacer(1, 5),   
+            HorizontalLine(width=self.width - 2 * self.margin - 20, thickness=1),
         ], c)
         c.restoreState()
     
-    def create_cover_page(self, output_path, carry, image_path):
+    def create_cover_page(self, output_path, carry):
         """
         Generate a complete cover page PDF.
         
@@ -218,6 +238,7 @@ class CoverPageGenerator:
             c = canvas.Canvas(output_full_path, pagesize=self.page_size)
             
             # Add background and overlay
+            image_path = os.path.join("cover_pictures", f"{carry.name}.png")
             self._draw_background_image(c, image_path)
             
             # Add text content

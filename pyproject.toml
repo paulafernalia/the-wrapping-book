@@ -5,6 +5,7 @@ description = "Repository to create a book using content from thewrappinggallery
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "pillow>=11.2.1",
     "python-decouple>=3.8",
     "reportlab>=4.3.1",
     "supabase>=2.15.0",

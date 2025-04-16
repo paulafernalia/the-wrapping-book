@@ -15,6 +15,10 @@ FONTCONFIG = [
     {
         'name': 'Poppins-Light',
         'path': "fonts/Poppins/Poppins-Light.ttf"
+    },
+    {
+        'name': 'PlayfairDisplay',
+        'path': "fonts/Playfair_Display/static/PlayfairDisplay-Regular.ttf"
     }
 
 ]

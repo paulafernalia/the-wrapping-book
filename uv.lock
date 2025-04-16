@@ -605,6 +605,7 @@ name = "the-wrapping-book"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "pillow" },
     { name = "python-decouple" },
     { name = "reportlab" },
     { name = "supabase" },
@@ -612,6 +613,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
+    { name = "pillow", specifier = ">=11.2.1" },
     { name = "python-decouple", specifier = ">=3.8" },
     { name = "reportlab", specifier = ">=4.3.1" },
     { name = "supabase", specifier = ">=2.15.0" },
