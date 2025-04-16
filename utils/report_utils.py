@@ -7,7 +7,6 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfbase import pdfmetrics
 import logging
-import fonts
 import os
 from utils import image_utils
 from reportlab.platypus import Flowable
@@ -79,7 +78,12 @@ class CoverPageGenerator:
 
 
     def _draw_inset_rectangle(self, c):
-
+        """
+        Draw an inset rectangle around the page.
+        
+        Args:
+            c (canvas): The ReportLab canvas to draw on
+        """
         # Calculate rectangle dimensions
         width = self.width - 1 * self.margin
         height = self.height - 1 * self.margin
@@ -98,6 +102,7 @@ class CoverPageGenerator:
         Draw a background image with a translucent overlay.
         
         Args:
+            c (canvas): The ReportLab canvas to draw on
             image_path (str): Path to the background image
             opacity (float): Opacity of the white overlay (0-1)
         """
@@ -138,12 +143,8 @@ class CoverPageGenerator:
         Add formatted text to the cover page.
         
         Args:
-            title (str): Main title text
-            subtitle (str): Subtitle text
-            size_text (str): Size information text
-            title_font (str): Font name for title
-            subtitle_font (str): Font name for subtitle
-            size_font (str): Font name for size text
+            c (canvas): The ReportLab canvas to draw on
+            carry: Object containing title, finish, position, size, mmposition, and name
         """
         # Setup paragraph styles
         styles = getSampleStyleSheet()
@@ -217,26 +218,18 @@ class CoverPageGenerator:
         ], c)
         c.restoreState()
     
-    def create_cover_page(self, output_path, carry):
+    def create_cover_page_for_carry(self, c, carry):
         """
-        Generate a complete cover page PDF.
+        Generate a single cover page for a carry on the given canvas.
         
         Args:
-            output_path (str): Path where the PDF will be saved
-            carryid (str): Name of the carry in the db
-            title (str): Main title text
-            subtitle (str): Subtitle text
-            size_text (str): Size information text
-            image_path (str): Path to background image
+            c (canvas): The ReportLab canvas to draw on
+            carry: Object containing carry information
             
         Returns:
             bool: True if page was created successfully, False otherwise
         """
         try:
-            # Create canvas
-            output_full_path = os.path.join(output_path, f"cover_{carry.name}.pdf")
-            c = canvas.Canvas(output_full_path, pagesize=self.page_size)
-            
             # Add background and overlay
             image_path = os.path.join("cover_pictures", f"{carry.name}.png")
             self._draw_background_image(c, image_path)
@@ -244,13 +237,51 @@ class CoverPageGenerator:
             # Add text content
             self._add_text_content(c, carry)
 
+            # Draw border rectangle
             self._draw_inset_rectangle(c)
             
-            # Save the PDF
-            c.save()
-            logger.info(f"Cover page successfully created: {output_full_path}")
             return True
             
         except Exception as e:
-            logger.error(f"Failed to create cover page: {e}")
+            logger.error(f"Failed to create cover page for {carry.name}: {e}")
+            return False
+    
+    def create_combined_pdf(self, output_path, output_filename, carries):
+        """
+        Generate a combined PDF with cover pages for all carries.
+        
+        Args:
+            output_path (str): Directory where the PDF will be saved
+            output_filename (str): Name of the output PDF file
+            carries (list): List of carry objects
+            
+        Returns:
+            bool: True if PDF was created successfully, False otherwise
+        """
+        try:
+            # Create full output path
+            output_full_path = os.path.join(output_path, output_filename)
+            
+            # Create canvas for the combined PDF
+            c = canvas.Canvas(output_full_path, pagesize=self.page_size)
+            
+            # For each carry, create a page
+            for i, carry in enumerate(carries):
+                # Generate page content
+                success = self.create_cover_page_for_carry(c, carry)
+                
+                if not success:
+                    logger.warning(f"Failed to add page for carry {carry.name}")
+                
+                # If there are more carries, add a new page
+                if i < len(carries) - 1:
+                    c.showPage()
+            
+            # Save the PDF
+            c.save()
+            logger.info(f"Combined PDF successfully created: {output_full_path}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to create combined PDF: {e}")
             return False

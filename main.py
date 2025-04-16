@@ -9,10 +9,11 @@ def main():
     carries = db_utils.get_carries()
 
     # Create generator and cover page
-    generator = report_utils.CoverPageGenerator(font_config=fonts.FONTCONFIG)
+    cover_generator = report_utils.CoverPageGenerator(font_config=fonts.FONTCONFIG)
 
-    for carry in carries:
-        generator.create_cover_page(output_path="covers", carry=carry)
+    # for carry in carries:
+    cover_generator.create_combined_pdf(output_path="covers", output_filename="all.pdf", carries=carries)
+
 
 if __name__ == "__main__":
     main()
