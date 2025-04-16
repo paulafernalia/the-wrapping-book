@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 class CoverPageGenerator:
     """Class for generating PDF cover pages with background images and formatted text."""
 
-    def __init__(self, font_config, page_size=A4, margin=inch, text_color=(51 / 255, 51 / 255, 51 / 255)):
+    def __init__(self, font_config, page_size=A4, margin=inch, text_color=(70 / 255, 70 / 255, 70 / 255)):
         """
         Initialize the cover page generator with basic settings.
         
@@ -61,6 +61,21 @@ class CoverPageGenerator:
         except Exception as e:
             logger.error(f"Failed to register font {font_name}: {e}")
             return False
+
+
+    def _draw_inset_rectangle(self, c):
+
+	    # Calculate rectangle dimensions
+	    width = self.width - 1 * self.margin
+	    height = self.height - 1 * self.margin
+
+	    c.setLineWidth(3) 
+
+	    r, g, b = 229/255, 219/255, 219/255
+	    c.setStrokeColorRGB(r, g, b)
+
+	    # Draw rectangle
+	    c.rect(0.5 * inch, 0.5 * inch, width, height)
     
     def _draw_background_image(self, c, image_path, opacity=0.5):
         """
@@ -100,7 +115,7 @@ class CoverPageGenerator:
         except Exception as e:
             logger.error(f"Failed to load or draw image: {e}")
     
-    def _add_text_content(self, c, title, subtitle, size_text):
+    def _add_text_content(self, c, carry):
         """
         Add formatted text to the cover page.
         
@@ -118,7 +133,7 @@ class CoverPageGenerator:
             'TitleStyle',
             parent=styles['Heading1'],
             fontName='NotoSerifDisplay-Medium',
-            fontSize=60,
+            fontSize=72,
             textColor=self.text_color,
             alignment=0,
             leading=60,
@@ -135,17 +150,27 @@ class CoverPageGenerator:
         size_style = ParagraphStyle(
             'SizeStyle',
             parent=styles['Normal'],
-            fontName='Poppins-Regular',
-            fontSize=32,
+            fontName='Poppins-Light',
+            fontSize=22,
+            textColor=self.text_color,
+            alignment=0,
+            leading=22,
+        )
+        mmposition_style = ParagraphStyle(
+            'SizeStyle',
+            parent=styles['Normal'],
+            fontName='Poppins-Light',
+            fontSize=22,
             textColor=self.text_color,
             alignment=0,
             leading=22,
         )
 
         # Create Paragraphs
-        title_paragraph = Paragraph(title, title_style)
-        subtitle_paragraph = Paragraph(subtitle, subtitle_style)
-        size_paragraph = Paragraph(size_text, size_style)
+        title_paragraph = Paragraph(carry.title, title_style)
+        subtitle_paragraph = Paragraph(carry.finish, subtitle_style)
+        size_paragraph = Paragraph(f"{carry.position}   |   {carry.size}", size_style)
+        mmposition_paragraph = Paragraph(f"{carry.mmposition}", mmposition_style)
 
         # Define frame height for text content (adjust as needed based on text length)
         text_block_height = 500
@@ -161,12 +186,18 @@ class CoverPageGenerator:
 
         # Add content to the frame
         c.saveState()
-        frame.addFromList([size_paragraph, Spacer(1, 70), 
-                          title_paragraph, Spacer(1, 20), 
-                          subtitle_paragraph], c)
+        frame.addFromList([
+        	size_paragraph,
+        	Spacer(1, 70), 
+            title_paragraph,
+            Spacer(1, 20), 
+            subtitle_paragraph,   
+            Spacer(1, 50),  
+            mmposition_paragraph,        
+        ], c)
         c.restoreState()
     
-    def create_cover_page(self, output_path, carryid, title, subtitle, size_text, image_path):
+    def create_cover_page(self, output_path, carry, image_path):
         """
         Generate a complete cover page PDF.
         
@@ -183,18 +214,20 @@ class CoverPageGenerator:
         """
         try:
             # Create canvas
-            output_full_path = os.path.join(output_path, f"cover_{carryid}.pdf")
+            output_full_path = os.path.join(output_path, f"cover_{carry.name}.pdf")
             c = canvas.Canvas(output_full_path, pagesize=self.page_size)
             
             # Add background and overlay
             self._draw_background_image(c, image_path)
             
             # Add text content
-            self._add_text_content(c, title, subtitle, size_text)
+            self._add_text_content(c, carry)
+
+            self._draw_inset_rectangle(c)
             
             # Save the PDF
             c.save()
-            logger.info(f"Cover page successfully created: {output_path}")
+            logger.info(f"Cover page successfully created: {output_full_path}")
             return True
             
         except Exception as e:

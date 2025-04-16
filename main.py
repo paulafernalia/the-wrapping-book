@@ -1,19 +1,22 @@
 from utils import fonts
 from utils import report_utils
+from utils import db_utils
+from utils import data_utils
+
 
 def main():
-    """Example usage of the CoverPageGenerator class."""
+    # Get carries from supabase
+    carries = db_utils.get_carries()
+
     # Create generator and cover page
     generator = report_utils.CoverPageGenerator(font_config=fonts.FONTCONFIG)
-    generator.create_cover_page(
-        output_path="covers",
-        carryid="annes_knotless_front_pocket",
-        title="Anne's Knotless Front Pocket Double Cross Carry",
-        subtitle="armpit to shoulder",
-        size_text="BASE - 1",
-        image_path="wendys_armpit_to_shoulder.png",
-    )
 
+    for carry in carries:
+        generator.create_cover_page(
+            output_path="covers",
+            carry=carry,
+            image_path="wendys_armpit_to_shoulder.png",
+        )
 
 if __name__ == "__main__":
     main()
