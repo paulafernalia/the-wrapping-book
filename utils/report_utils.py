@@ -313,94 +313,182 @@ class BookContentGenerator:
         """
         # Get images from bucket
         results = db_utils.get_tutorial_steps_by_carry(carry.name)['data']
-        
         urls = [carry["url"] for carry in results]
-        grid_size = 9
-        num_pages = len(urls) // 9
-        if len(urls) % 9 > 0:
-            num_pages += 1
-
+        
+        # Calculate page layout
+        num_pages = self._calculate_pages_needed(urls)
+        image_width, image_height, gap_x = self._calculate_grid_layout()
+        
+        # Create temp directory
         temp_dir = "./temp_images"
         os.makedirs(temp_dir, exist_ok=True)
-
-        available_width = self.width - (self.margin)
-        available_height = self.height - (2 * self.margin)
-
-        gap_x = 20
-        image_width = (available_width - (2 * gap_x)) / 3
-        image_height = available_height / 3
-
-        # Download and place images
-        temp_image_paths = []
-        for page in range(num_pages):
-            self.page += 1
-            c.showPage()
-
-            # Line position
-            line_y = self.height - self.margin
-            line = HorizontalLine(width=self.width - self.margin, thickness=1)
-            line.drawOn(c, self.margin / 2, line_y)
-
-            line2_y = 0.75 * self.margin
-            line2 = HorizontalLine(width=2 * self.margin, thickness=1)
-            line2.drawOn(c, self.width / 2 - self.margin, line2_y)
-
-            # Page number under the line
-            page_number_y = line2_y - 12  # 12 points below the line
-            c.setFont("AndaleMono", 12)
-            c.drawCentredString(self.width / 2, page_number_y, f"{self.page:02}")
-
-            # Header text position
-            header_y = line_y + 5  # Slightly above the line
-            header_font = "NotoSerifDisplay-Italic"
-            header_font_size = 10
-
-            # Set font
-            c.setFont(header_font, header_font_size)
-
-            # Left-aligned header text
-            c.drawString(self.margin / 2, header_y, carry.title)
-
-            # Right-aligned header text
-            c.drawRightString(self.width - self.margin / 2, header_y, carry.finish)
-            for j in range(page * 9, (page + 1) * 9):
-                if j >= len(urls):
-                    break
-
-                i = j % 9
-                try:
-                    # Download image
-                    response = requests.get(urls[j], stream=True)
-                    response.raise_for_status()  # Raise an exception for bad responses
-                    
-                    # Convert to ImageReader format
-                    img_data = io.BytesIO(response.content)
-                    img = Image.open(img_data).convert('RGB')
-                    
-                    # Determine image position (0,0 is bottom left in ReportLab)
-                    row = 2 - (i // 3)  # Convert to 0-indexed rows from top to bottom
-                    col = i % 3
-                    
-                    x = self.margin / 2 + (col * (image_width + gap_x))
-                    y = self.margin + (row * image_height)
-                    
-                    # Save to memory buffer
-                    img_buffer = io.BytesIO()
-                    img.save(img_buffer, format='JPEG')
-                    img_buffer.seek(0)
-                    
-                    # Draw image on canvas
-                    img_reader = ImageReader(img_buffer)
-                    c.drawImage(img_reader, x, y, width=image_width, height=image_height, preserveAspectRatio=True)
-
-                except Exception as e:
-                    print(f"Error processing image {i} from {urls[j]}: {e}")
-
+        
+        # Create pages with grid layout
+        for page_index in range(num_pages):
+            self._create_tutorial_grid_page(c, urls, page_index, carry, image_width, image_height, gap_x)
+        
+        # Add blank page if needed to maintain even number of pages
         if num_pages % 2 == 0:
             c.showPage()
             self.page += 1
-
+        
         return True
+
+    def _calculate_pages_needed(self, urls):
+        """
+        Calculate how many pages needed for the tutorial images
+        
+        Args:
+            urls (list): List of image URLs
+            
+        Returns:
+            int: Number of pages needed
+        """
+        grid_size = 9  # 3x3 grid
+        num_pages = len(urls) // grid_size
+        if len(urls) % grid_size > 0:
+            num_pages += 1
+        return num_pages
+
+    def _calculate_grid_layout(self):
+        """
+        Calculate dimensions for the 3x3 image grid
+        
+        Returns:
+            tuple: (image_width, image_height, gap_x)
+        """
+        gap_x = 20  # Horizontal gap between images
+        available_width = self.width - self.margin
+        available_height = self.height - (2 * self.margin)
+        
+        image_width = (available_width - (2 * gap_x)) / 3  # Width for each image in the grid
+        image_height = available_height / 3  # Height for each image in the grid
+        
+        return image_width, image_height, gap_x
+
+    def _draw_page_header(self, c, carry, line_y):
+        """
+        Draw the page header with title, finish text and horizontal line
+        
+        Args:
+            c (canvas): The ReportLab canvas to draw on
+            carry: Object containing carry information
+            line_y: Y-position for the horizontal line
+        """
+        # Draw horizontal line at the top
+        line = HorizontalLine(width=self.width - self.margin, thickness=1)
+        line.drawOn(c, self.margin / 2, line_y)
+        
+        # Header text position - slightly above the line
+        header_y = line_y + 5
+        header_font = "NotoSerifDisplay-Italic"
+        header_font_size = 10
+        
+        # Set font and draw header text
+        c.setFont(header_font, header_font_size)
+        c.drawString(self.margin / 2, header_y, carry.title)  # Left-aligned title
+        c.drawRightString(self.width - self.margin / 2, header_y, carry.finish)  # Right-aligned finish
+        
+    def _draw_page_footer(self, c):
+        """
+        Draw the page footer with page number and horizontal line
+        
+        Args:
+            c (canvas): The ReportLab canvas to draw on
+        """
+        # Calculate positions
+        line_y = 0.75 * self.margin
+        page_number_y = line_y - 12  # 12 points below the line
+        
+        # Draw short horizontal line
+        line = HorizontalLine(width=2 * self.margin, thickness=1)
+        line.drawOn(c, self.width / 2 - self.margin, line_y)
+        
+        # Draw page number
+        c.setFont("AndaleMono", 12)
+        c.drawCentredString(self.width / 2, page_number_y, f"{self.page:02}")
+
+    def _download_and_place_image(self, c, url, x, y, width, height):
+        """
+        Download an image from URL and place it on the canvas
+        
+        Args:
+            c (canvas): The ReportLab canvas to draw on
+            url (str): URL of the image to download
+            x (float): X-position on the canvas
+            y (float): Y-position on the canvas
+            width (float): Width to render the image
+            height (float): Height to render the image
+            
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            # Download image
+            response = requests.get(url, stream=True)
+            response.raise_for_status()
+            
+            # Process image data
+            img_data = io.BytesIO(response.content)
+            img = Image.open(img_data).convert('RGB')
+            
+            # Save to buffer for ReportLab
+            img_buffer = io.BytesIO()
+            img.save(img_buffer, format='JPEG')
+            img_buffer.seek(0)
+            
+            # Draw image on canvas
+            img_reader = ImageReader(img_buffer)
+            c.drawImage(img_reader, x, y, width=width, height=height, preserveAspectRatio=True)
+            return True
+            
+        except Exception as e:
+            print(f"Error processing image from {url}: {e}")
+            return False
+
+    def _create_tutorial_grid_page(self, c, urls, page_index, carry, image_width, image_height, gap_x):
+        """
+        Create a single tutorial page with images arranged in a 3x3 grid
+        
+        Args:
+            c (canvas): The ReportLab canvas to draw on
+            urls (list): List of all image URLs
+            page_index (int): Current page index (zero-based)
+            carry: Object containing carry information
+            image_width (float): Width for each image
+            image_height (float): Height for each image
+            gap_x (float): Horizontal gap between images
+        """
+        # Start a new page and increment counter
+        self.page += 1
+        c.showPage()
+        
+        # Page layout
+        line_y = self.height - self.margin
+        
+        # Draw header and footer
+        self._draw_page_header(c, carry, line_y)
+        self._draw_page_footer(c)
+        
+        # Calculate which images to show on this page
+        grid_size = 9  # 3x3 grid
+        start_idx = page_index * grid_size
+        end_idx = min(start_idx + grid_size, len(urls))
+        
+        # Place each image in the grid
+        for j in range(start_idx, end_idx):
+            i = j % grid_size  # Local index within the grid (0-8)
+            
+            # Calculate grid position
+            row = 2 - (i // 3)  # Convert to 0-indexed rows from top to bottom
+            col = i % 3         # Column index (0-2)
+            
+            # Calculate coordinates
+            x = self.margin / 2 + (col * (image_width + gap_x))
+            y = self.margin + (row * image_height)
+            
+            # Place the image
+            self._download_and_place_image(c, urls[j], x, y, image_width, image_height)
     
     def create_cover_page_for_carry(self, c, carry):
         """
