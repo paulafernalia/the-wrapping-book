@@ -12,9 +12,10 @@ import os
 import io
 from PIL import Image
 from utils import image_utils
-from utils import colors
+from utils import colors_utils
 from utils import db_utils
 from reportlab.platypus import Flowable
+from reportlab.lib import colors
 
 
 # Configure logging
@@ -40,7 +41,7 @@ class HorizontalLine(Flowable):
 class BookContentGenerator:
     """Class for generating PDF cover pages with background images and formatted text."""
 
-    def __init__(self, font_config, page_size=A4, margin=inch, text_color=colors.LIGHTBLACK):
+    def __init__(self, font_config, page_size=A4, margin=inch, text_color=colors_utils.LIGHTBLACK):
         """
         Initialize the cover page generator with basic settings.
         
@@ -100,7 +101,7 @@ class BookContentGenerator:
         c.setLineWidth(1) 
 
         # r, g, b = 229/255, 219/255, 219/255
-        r, g, b = colors.LIGHTBLACK
+        r, g, b = colors_utils.LIGHTBLACK
         c.setStrokeColorRGB(r, g, b)
 
         # Draw rectangle
@@ -122,8 +123,8 @@ class BookContentGenerator:
             img_width, img_height = img.getSize()
 
             # Calculate the maximum area within margins (90% of available space)
-            max_width = (self.width - 2 * self.margin) * 0.7
-            max_height = (self.height - 2 * self.margin) * 0.7
+            max_width = (self.width - 2 * self.margin) * 0.6
+            max_height = (self.height - 2 * self.margin) * 0.6
 
             # Preserve aspect ratio
             ratio = min(max_width / img_width, max_height / img_height)
@@ -131,21 +132,20 @@ class BookContentGenerator:
             new_height = img_height * ratio
 
             # Center image within the margins
-            x = (self.width - new_width) / 2
+            x = (self.width - new_width) / 2 + self.margin
             y = (self.height - new_height) / 2
 
             c.drawImage(img, x, y, width=new_width, height=new_height, mask='auto')
 
-            # Add translucent overlay
-            c.saveState()
-            c.setFillColorRGB(1, 1, 1, alpha=opacity)  # white with specified opacity
-            c.rect(self.margin, self.margin, 
-                          self.width - 2 * self.margin, 
-                          self.height - 2 * self.margin, 
-                          fill=1, stroke=0)
-            c.restoreState()
         except Exception as e:
             logger.error(f"Failed to load or draw image: {e}")
+
+
+    def _add_page(self, c):
+        # Page number under the line
+        page_number_y = self.height - self.margin
+        c.setFont("Poppins-Regular", 14)
+        c.drawRightString(self.width - self.margin, page_number_y, f"{self.page}")
     
     def _add_text_content(self, c, carry):
         """
@@ -155,30 +155,35 @@ class BookContentGenerator:
             c (canvas): The ReportLab canvas to draw on
             carry: Object containing title, finish, position, size, mmposition, and name
         """
-        # Setup paragraph styles
-        title_style, subtitle_style, size_style, mmposition_style = self._get_paragraph_styles()
-
         # Create Paragraphs
-        title_paragraph, subtitle_paragraph, size_paragraph, mmposition_paragraph = self._create_paragraphs(carry, title_style, subtitle_style, size_style, mmposition_style)
+        title_paragraph, subtitle_paragraph = self._create_title_text(carry)
 
         # Define frame height for text content (adjust as needed based on text length)
-        text_block_height = 500
+        text_block_height = 475
 
         # Create a frame for text positioning
         frame = self._create_text_frame(text_block_height)
 
         # Add content to the frame
-        self._add_content_to_frame(c, frame, title_paragraph, subtitle_paragraph, size_paragraph)
+        self._add_title(c, frame, title_paragraph, subtitle_paragraph)
 
-        # Add horizontal line and page number
-        self._add_mmposition_line(c, carry)
+        # Add horizontal line and mmposition
+        self._add_secondary_info(c, carry)
 
-    def _get_paragraph_styles(self):
+        # Add page number
+        self._add_page(c)
+
+
+    def _create_title_text(self, carry):
         """
-        Setup and return the paragraph styles for title, subtitle, size, and mmposition.
+        Create the paragraphs for the title, subtitle, size, and mmposition.
+
+        Args:
+            carry: Object containing title, finish, position, size, mmposition, and name
+            title_style, subtitle_style, size_style, mmposition_style: Styles for the paragraphs
         
         Returns:
-            tuple: The styles for title, subtitle, size, and mmposition
+            tuple: The paragraphs for title, subtitle, size, and mmposition
         """
         styles = getSampleStyleSheet()
 
@@ -206,41 +211,16 @@ class BookContentGenerator:
             'SizeStyle',
             parent=styles['Normal'],
             fontName='Poppins-Light',
-            fontSize=28,
+            fontSize=20,
             textColor=self.text_color,
             alignment=0,
             leading=22,
         )
 
-        mmposition_style = ParagraphStyle(
-            'SizeStyle',
-            parent=styles['Normal'],
-            fontName='Poppins-Light',
-            fontSize=16,
-            textColor=self.text_color,
-            alignment=0,
-            leading=22,
-        )
-
-        return title_style, subtitle_style, size_style, mmposition_style
-
-    def _create_paragraphs(self, carry, title_style, subtitle_style, size_style, mmposition_style):
-        """
-        Create the paragraphs for the title, subtitle, size, and mmposition.
-
-        Args:
-            carry: Object containing title, finish, position, size, mmposition, and name
-            title_style, subtitle_style, size_style, mmposition_style: Styles for the paragraphs
-        
-        Returns:
-            tuple: The paragraphs for title, subtitle, size, and mmposition
-        """
         title_paragraph = Paragraph(carry.title, title_style)
         subtitle_paragraph = Paragraph(carry.finish, subtitle_style)
-        size_paragraph = Paragraph(f"{carry.position}   |   {carry.size}", size_style)
-        mmposition_paragraph = Paragraph(f"{carry.mmposition}", mmposition_style)
 
-        return title_paragraph, subtitle_paragraph, size_paragraph, mmposition_paragraph
+        return title_paragraph, subtitle_paragraph
 
     def _create_text_frame(self, text_block_height):
         """
@@ -253,7 +233,7 @@ class BookContentGenerator:
             Frame: The created frame for text content
         """
         frame = Frame(
-            self.margin,
+            self.margin - 10,
             self.margin,  # Bottom margin
             self.width - 2 * self.margin,
             text_block_height,
@@ -261,29 +241,27 @@ class BookContentGenerator:
         )
         return frame
 
-    def _add_content_to_frame(self, c, frame, title_paragraph, subtitle_paragraph, size_paragraph):
+    def _add_title(self, c, frame, title_paragraph, subtitle_paragraph):
         """
         Add the content to the frame.
         
         Args:
             c (canvas): The ReportLab canvas to draw on
             frame (Frame): The frame where content is placed
-            title_paragraph, subtitle_paragraph, size_paragraph: The paragraphs to be added
+            title_paragraph, subtitle_paragraph: The paragraphs to be added
         
         Returns:
             None
         """
         c.saveState()
         frame.addFromList([
-            size_paragraph,
-            Spacer(1, 70), 
             title_paragraph,
-            Spacer(1, 20), 
+            Spacer(1, 25), 
             subtitle_paragraph,   
         ], c)
         c.restoreState()
 
-    def _add_mmposition_line(self, c, carry):
+    def _add_secondary_info(self, c, carry):
         """
         Add the horizontal line and the page number (mmposition) under the line.
         
@@ -291,14 +269,22 @@ class BookContentGenerator:
             c (canvas): The ReportLab canvas to draw on
             carry: Object containing mmposition
         """
-        mmposition_line_y = 1.5 * self.margin
-        mmposition_line = HorizontalLine(width=self.width - 2 * self.margin - 20, thickness=1)
-        mmposition_line.drawOn(c, self.margin, mmposition_line_y)
+        line_y = 1 * self.margin
+        line = HorizontalLine(width=self.width - 2 * self.margin - 20, thickness=1)
+        line.drawOn(c, self.margin, line_y)
+
+        difficulty_text_y = line_y + 12
+        c.setFont("Poppins-Light", 14)
+        c.drawString(self.margin, difficulty_text_y, f"{carry.difficulty}")
+
+        sizepos_text_y = self.height * 2.15 / 3
+        c.setFont("Poppins-Light", 20)
+        c.drawString(self.margin, sizepos_text_y, f"{carry.position} | {carry.size}")
 
         # Page number under the line
-        page_number_y = mmposition_line_y + 12  # 12 points below the line
+        mmposition_text_y = line_y + 36
         c.setFont("Poppins-Light", 14)
-        c.drawString(self.margin, page_number_y, f"{carry.mmposition}")
+        c.drawString(self.margin, mmposition_text_y, f"{carry.mmposition}")
 
     def create_tutorial_pages_for_carry(self, c, carry):
         """
@@ -489,6 +475,21 @@ class BookContentGenerator:
             
             # Place the image
             self._download_and_place_image(c, urls[j], x, y, image_width, image_height)
+
+    def _create_background_rectangle(self, c, color=colors.lightgrey):
+        # Calculate the positions for the rectangle (1/3 to 2/3 of height)
+        y_bottom = self.height / 5 + 20  # 1/3 from bottom
+        y_top = 4 * self.height / 5 + 20 # 2/3 from bottom
+        
+        # Save the current graphics state
+        c.saveState()
+        
+        # To put this at the lowest z-index, we need to draw it first
+        c.setFillColor(color)
+        c.rect(0, y_bottom, self.width, y_top - y_bottom, fill=1, stroke=0)
+        
+        # Restore the graphics state
+        c.restoreState()
     
     def create_cover_page_for_carry(self, c, carry):
         """
@@ -502,6 +503,8 @@ class BookContentGenerator:
             bool: True if page was created successfully, False otherwise
         """
         try:
+            self._create_background_rectangle(c)
+
             # Add background and overlay
             image_path = os.path.join("cover_pictures", f"{carry.name}.png")
             self._draw_background_image(c, image_path)
@@ -510,13 +513,39 @@ class BookContentGenerator:
             self._add_text_content(c, carry)
 
             # Draw border rectangle
-            self._draw_inset_rectangle(c)
+            # self._draw_inset_rectangle(c)
+
+            # Add QR
+            self._add_carry_qr(c, carry.name)
             
             return True
             
         except Exception as e:
             logger.error(f"Failed to create cover page for {carry.name}: {e}")
             return False
+
+    def _add_carry_qr(self, c, carry_name):
+        # Load the image
+        img = ImageReader("ticksqr.png")
+        img_width, img_height = img.getSize()
+        
+        # Define image dimensions for the square image
+        # For this example, we'll make the image take up 20% of the page width
+        image_size = self.width * 0.2
+        
+        # Calculate position for bottom right corner
+        x_position = self.width - image_size - 0.75 * self.margin  # 10 points padding from right edge
+        y_position = 0.75 * self.margin  # 10 points padding from bottom edge
+        
+        # Draw the image
+        c.drawImage(
+            "ticksqr.png", 
+            x_position, 
+            y_position, 
+            width=image_size, 
+            height=image_size, 
+            preserveAspectRatio=True
+        )
     
     def create_combined_pdf(self, output_path, output_filename, carries):
         """
@@ -547,11 +576,13 @@ class BookContentGenerator:
                 if not success:
                     logger.warning(f"Failed to add page for carry {carry.name}")
 
-                success = self.create_tutorial_pages_for_carry(c, carry)
+                # success = self.create_tutorial_pages_for_carry(c, carry)
                 
                 # If there are more carries, add a new page
                 if i < len(carries) - 1:
                     c.showPage()
+
+                break
 
             # Save the PDF
             c.save()
