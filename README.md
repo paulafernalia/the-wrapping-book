@@ -1,2 +1,2 @@
 # The Wrapping Book
-Repository with code to create a book with babywearing tutorials on LaTeX programmatically, from tutorials and illustrations on thewrappinggallery.com
+Repository with Python code to generate a PDF book with wrapping tutorials programmatically, from data and images from a supabase database (also used in (thewrappinggallery.com)[www.thewrappinggallery]
