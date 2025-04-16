@@ -5,20 +5,30 @@ import mimetypes
 
 SUPABASE_URL = config("SUPABASE_URL")
 SUPABASE_KEY = config("SERVICE_ROLE_KEY")
-SUPABASE_TABLE = config("SUPABASE_TABLE")
+SUPABASE_CARRY_TABLE = config("SUPABASE_CARRY_TABLE")
+SUPABASE_RATING_TABLE = config("SUPABASE_RATING_TABLE")
 SUPABASE_BUCKET = config("SUPABASE_BUCKET")
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 
 def get_carries():
-    columns = ["name", "longtitle", "position", "size", "mmposition"]
-    column_str = ",".join(columns)
-    SUPABASE_TABLE = config("SUPABASE_TABLE")
+    columns = [
+        "name", "longtitle", "position",
+        "size", "mmposition", "difficulty"
+    ]
+    main_table_columns = ",".join(columns)
 
     response = (
-        supabase.table(SUPABASE_TABLE)
-        .select(column_str)
+        supabase.table(SUPABASE_CARRY_TABLE)
+        .select(f"""
+            name, 
+            longtitle, 
+            position, 
+            size, 
+            mmposition,
+            {SUPABASE_RATING_TABLE}(difficulty)
+        """)
         .eq("tutorial", True)
         .execute()
     )
@@ -29,7 +39,8 @@ def get_carries():
             r["longtitle"], 
             r["mmposition"],
             r["position"],
-            r["size"]
+            r["size"],
+            r["wrappinggallery_rating"]["difficulty"]
         ) for r in response.data
     ]
 
