@@ -19,6 +19,10 @@ FONTCONFIG = [
     {
         'name': 'PlayfairDisplay',
         'path': "fonts/Playfair_Display/static/PlayfairDisplay-Regular.ttf"
+    },
+    {
+        'name': 'AndaleMono',
+        'path': "fonts/ANDALEMO.TTF"
     }
 
 ]
