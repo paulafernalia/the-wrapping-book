@@ -9,7 +9,7 @@ from utils import BaseContentGenerator
 from utils import HorizontalLine
 
 
-SIGNATURE = "@PAULAFERNALIA"
+SIGNATURE = "@PAULAFERMINCUETO"
 
 
 class PostGenerator(BaseContentGenerator.BaseContentGenerator):
