@@ -11,13 +11,14 @@ SUPABASE_BUCKET = config("SUPABASE_BUCKET")
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
+COLUMNS = [
+    "name", "longtitle", "position",
+    "size", "mmposition", "difficulty"
+]
+
 
 def get_carries():
-    columns = [
-        "name", "longtitle", "position",
-        "size", "mmposition", "difficulty"
-    ]
-    main_table_columns = ",".join(columns)
+    main_table_columns = ",".join(COLUMNS)
 
     response = (
         supabase.table(SUPABASE_CARRY_TABLE)
@@ -45,6 +46,39 @@ def get_carries():
     ]
 
     return carries
+
+
+def get_carry_by_name(carryname):
+    main_table_columns = ",".join(COLUMNS)
+
+    response = (
+        supabase.table(SUPABASE_CARRY_TABLE)
+        .select(f"""
+            name, 
+            longtitle, 
+            position, 
+            size, 
+            mmposition,
+            {SUPABASE_RATING_TABLE}(difficulty)
+        """)
+        .eq("tutorial", True)
+        .eq("name", carryname)
+        .limit(1)
+        .execute()
+    )
+
+    if not response.data:
+        return None  # or raise an exception if preferred
+
+    r = response.data[0]
+    return data_utils.Carry(
+        r["name"],
+        r["longtitle"],
+        r["mmposition"],
+        r["position"],
+        r["size"],
+        r["wrappinggallery_rating"]["difficulty"]
+    )
 
 
 def get_tutorial_steps_by_carry(name_filter):

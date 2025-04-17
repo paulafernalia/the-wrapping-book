@@ -5,6 +5,7 @@ description = "Repository to create a book using content from thewrappinggallery
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "cairosvg>=2.7.1",
     "pillow>=11.2.1",
     "python-decouple>=3.8",
     "qrcode>=8.1",
