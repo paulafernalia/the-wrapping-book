@@ -156,6 +156,8 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+instagram/
+
 # pytype static type analyzer
 .pytype/
 
