@@ -18,12 +18,14 @@ class PostGenerator(BaseContentGenerator.BaseContentGenerator):
         self.carry = carry
         self.output_dir = output_dir
 
-        if self.carry.position == "back":
+        if self.carry.position == "BACK CARRY":
             self.cover_line_color = colors_utils.BACKPOSTLINE
             self.cover_back_color = colors_utils.BACKPOSTBACKGROUND
+            self.title_text_color = "white"
         else:
-            self.cover_line_color = colors_utils.BACKPOSTLINE
-            self.cover_back_color = colors_utils.BACKPOSTBACKGROUND
+            self.cover_line_color = colors_utils.FRONTPOSTLINE
+            self.cover_back_color = colors_utils.FRONTPOSTBACKGROUND
+            self.title_text_color = "black"
 
     def generate_post(self):
         # Create full output path
@@ -68,17 +70,19 @@ class PostGenerator(BaseContentGenerator.BaseContentGenerator):
         h = (self.height - 2 * self.margin) * 1
         x = (self.width) / 2 - 3 * self.margin
         y = (self.height) / 2 - 4.5 * self.margin
-        self._draw_background_image(c, image_path, self.cover_back_color, w, h, x, y)
+        self._draw_background_image(c, image_path, self.cover_line_color, w, h, x, y)
         
         # # Add text content
-        self._add_title(c, self.carry, text_color='white', frame_height=2 * self.margin)
+        self._add_title(
+            c, self.carry, text_color=self.title_text_color, frame_height=2 * self.margin
+        )
 
         # # Draw border rectangle
         self._draw_inset_rectangle(c)
 
         self._add_signature(c)
 
-        self._add_size(c, self.carry, text_color='white')
+        self._add_size(c, self.carry, text_color=self.title_text_color)
 
         self._create_tutorial_pages_for_carry(c)
 
@@ -130,19 +134,19 @@ class PostGenerator(BaseContentGenerator.BaseContentGenerator):
         
         # Set font and draw header text
         c.setFont(header_font, header_font_size)
-        c.setFillColor(self.cover_line_color)
+        c.setFillColor(colors_utils.BACKPOSTLINE)
         c.drawString(self.margin / 2, header_y, carry.title)  # Left-aligned title
         c.drawRightString(self.width - self.margin / 2, header_y, carry.finish)  # Right-aligned finish
 
         # Draw short horizontal line
         line = HorizontalLine.HorizontalLine(
-            width=self.width / 2 - self.margin / 2, thickness=1, color=self.cover_line_color
+            width=self.width / 2 - self.margin / 2, thickness=1, color=colors_utils.BACKPOSTLINE
         )
         line.drawOn(c, 0, self.height - self.margin / 1.5)
         line.drawOn(c, self.width / 2 + self.margin / 2, self.height - self.margin / 1.5)
 
         page_number_y = self.height - 55
-        c.setFillColor(self.cover_line_color)
+        c.setFillColor(colors_utils.BACKPOSTLINE)
         c.setFont("AndaleMono", 32)
         c.drawCentredString(self.width / 2, page_number_y, f"{self.page:02}")
 
@@ -157,12 +161,12 @@ class PostGenerator(BaseContentGenerator.BaseContentGenerator):
         line_y = 0.75 * self.margin
         
         # Draw short horizontal line
-        line = HorizontalLine.HorizontalLine(width=2 * self.margin, thickness=1, color=self.cover_line_color)
+        line = HorizontalLine.HorizontalLine(width=2 * self.margin, thickness=1, color=colors_utils.BACKPOSTLINE)
         line.drawOn(c, self.width / 2 - self.margin, line_y)
 
         # Draw signature
         c.setFont("Poppins-Light", 12)
-        c.setFillColor(self.cover_line_color)
+        c.setFillColor(colors_utils.BACKPOSTLINE)
         c.drawCentredString(self.width / 2, line_y - 16 , SIGNATURE)
 
 
