@@ -13,6 +13,7 @@ from PIL import Image
 from utils import image_utils
 from utils import qr_utils
 from utils import fonts
+from utils import colors_utils
 
 
 class BaseContentGenerator:
@@ -69,7 +70,8 @@ class BaseContentGenerator:
             c (canvas): The ReportLab canvas to draw on
             image_path (str): Path to the background image
         """
-        img = image_utils.transform_svg_cover(os.path.join("tutorials", "drawing_cover.svg"), "645745")
+        hex_color = colors_utils.rgb_to_hex(color)
+        img = image_utils.transform_svg_cover(os.path.join("tutorials", "drawing_cover.svg"), hex_color)
 
         img_width, img_height = img.getSize()            
 
