@@ -176,3 +176,5 @@ cython_debug/
 .pypirc
 
 *.DS_Store
+
+*qr*.png

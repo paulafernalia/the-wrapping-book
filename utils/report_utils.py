@@ -14,6 +14,7 @@ from PIL import Image
 from utils import image_utils
 from utils import colors_utils
 from utils import db_utils
+from utils import qr_utils
 from reportlab.platypus import Flowable
 from reportlab.lib import colors
 
@@ -526,7 +527,8 @@ class BookContentGenerator:
 
     def _add_carry_qr(self, c, carry_name):
         # Load the image
-        img = ImageReader("ticksqr.png")
+        path = qr_utils.generate_qr(carry_name)
+        img = ImageReader(path)
         img_width, img_height = img.getSize()
         
         # Define image dimensions for the square image
@@ -539,7 +541,7 @@ class BookContentGenerator:
         
         # Draw the image
         c.drawImage(
-            "ticksqr.png", 
+            path, 
             x_position, 
             y_position, 
             width=image_size, 
@@ -576,13 +578,11 @@ class BookContentGenerator:
                 if not success:
                     logger.warning(f"Failed to add page for carry {carry.name}")
 
-                # success = self.create_tutorial_pages_for_carry(c, carry)
+                success = self.create_tutorial_pages_for_carry(c, carry)
                 
                 # If there are more carries, add a new page
                 if i < len(carries) - 1:
                     c.showPage()
-
-                break
 
             # Save the PDF
             c.save()
