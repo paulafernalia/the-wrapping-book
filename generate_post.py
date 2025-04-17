@@ -1,6 +1,6 @@
 import argparse
 from utils import fonts
-from utils import report_utils
+from utils import PostGenerator
 from utils import db_utils
 from utils import data_utils
 
@@ -10,7 +10,7 @@ def main(output_dir, carryname):
     carry = db_utils.get_carry_by_name(carryname)
     if carry is None:
         raise ValueError(f"Carry with a tutorial and name {carryname} not found in the database")
-    generator = report_utils.PostGenerator(output_dir, carry)
+    generator = PostGenerator.PostGenerator(output_dir, carry)
 
     generator.generate_post()
 

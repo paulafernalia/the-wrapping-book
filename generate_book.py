@@ -1,4 +1,4 @@
-from utils import report_utils
+from utils import BookGenerator
 from utils import db_utils
 from utils import data_utils
 
@@ -8,7 +8,7 @@ def main():
     carries = db_utils.get_carries()
 
     # Create generator and cover page
-    generator = report_utils.BookGenerator()
+    generator = BookGenerator.BookGenerator()
 
     # for carry in carries:
     generator.create_combined_pdf(

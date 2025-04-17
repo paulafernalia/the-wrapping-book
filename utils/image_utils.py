@@ -4,6 +4,25 @@ import re
 import cairosvg
 import io
 import os
+from pdf2image import convert_from_path
+
+
+def pdf_to_pngs(pdf_path, output_folder='.'):
+    try:
+        # Extract base name without extension
+        base = os.path.splitext(os.path.basename(pdf_path))[0]
+
+        # Convert PDF pages to images
+        images = convert_from_path(pdf_path)
+
+        for i, img in enumerate(images, start=1):
+            filename = f"{base}_p{i}.png"
+            full_path = os.path.join(output_folder, filename)
+            img.save(full_path, "PNG")
+            print(f"Saved page {i} to {full_path}")
+
+    except Exception as e:
+        print("Failed to convert PDF to PNGs:", e)
 
 
 def transform_svg_cover(svg_path, target_color, init_color="ff0000"):
@@ -50,4 +69,12 @@ def transform_svg_cover(svg_path, target_color, init_color="ff0000"):
             os.remove(temp_png)
 
     return img
+
+
+def svg_to_pdf(input_svg, output_pdf):
+    try:
+        cairosvg.svg2pdf(url=input_svg, write_to=output_pdf)
+        print(f"Successfully converted '{input_svg}' to '{output_pdf}'")
+    except Exception as e:
+        print("Conversion failed:", e)
     
