@@ -35,7 +35,24 @@ SUPABASE_KEY=your-supabase-key
 SUPABASE_BUCKET=your-supabase-bucket
 ```
 
-Generate the book by running:
+Generate the book* by running:
 ```bash
-make run
+make book
+```
+* This takes all carries in the database marked as having a tutorial and it assumes a cover in SVG exists in `covers/` for these carries.
+
+Generate a post* by running:
+```
+make post
+```
+* This assumes the steps exist in supabase and a cover in SVG exists in `covers/`
+
+Extract steps from a tutorial and upload them to supabase (also mark tutorial as available in table) with:
+```
+make extract-steps
+```
+
+Autoformat code with
+```
+make black
 ```
