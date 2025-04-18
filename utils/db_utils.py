@@ -110,7 +110,7 @@ def get_carry_by_name(carryname):
             {SUPABASE_RATING_TABLE}(difficulty)
         """)
         .eq("tutorial", True)
-        .eq("name", "giselles")
+        .eq("name", carryname)
         .limit(1)
         .execute()
     )
