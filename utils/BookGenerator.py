@@ -7,7 +7,6 @@ from utils import db_utils
 from utils import qr_utils
 from utils import BaseContentGenerator
 from utils import HorizontalLine
-from reportlab.lib import colors
 import shutil
 
 
@@ -54,7 +53,7 @@ class BookGenerator(BaseContentGenerator.BaseContentGenerator):
         c.setFont("AndaleMono", 12)
         c.drawCentredString(self.width / 2, page_number_y, f"{self.page:02}")
 
-    def _create_background_rectangle(self, c, color=colors.lightgrey):
+    def _create_background_rectangle(self, c, color):
         # Calculate the positions for the rectangle (1/3 to 2/3 of height)
         y_bottom = self.height / 5 + 20  # 1/3 from bottom
         y_top = 4 * self.height / 5 + 20 # 2/3 from bottom
@@ -138,16 +137,16 @@ class BookGenerator(BaseContentGenerator.BaseContentGenerator):
         Returns:
             bool: True if page was created successfully, False otherwise
         """
-        self._create_background_rectangle(c)
+        self._create_background_rectangle(c, colors_utils.BOOKRECT)
 
         # Add background and overlay
-        image_path = os.path.join("covers", f"{carry.name}.png")
+        image_path = os.path.join("covers", f"{carry.name}.svg")
 
         w = (self.width - 2 * self.margin) * 0.6
         h = (self.height - 2 * self.margin) * 0.6
         x = (self.width - 200) / 2 + self.margin
         y = (self.height - 350) / 2
-        self._draw_background_image(c, image_path, colors_utils.BOOKLINECOLOR, w, h, x, y)
+        self._draw_background_image(c, image_path, colors_utils.BOOKCOVER, w, h, x, y)
         
         # Add text content
         self._add_title(c, carry, text_color=colors_utils.LIGHTBLACK, frame_height=self.height / 3 - self.margin)

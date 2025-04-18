@@ -61,7 +61,7 @@ class PostGenerator(BaseContentGenerator.BaseContentGenerator):
             bool: True if page was created successfully, False otherwise
         """
         # Add background and overlay
-        image_path = os.path.join("covers", f"{self.carry.name}.png")
+        image_path = os.path.join("covers", f"{self.carry.name}.svg")
 
         # Set background color
         self._set_background_color(c)
@@ -176,16 +176,17 @@ class PostGenerator(BaseContentGenerator.BaseContentGenerator):
         line.drawOn(c, self.margin, line_y)
 
         signature = SIGNATURE
-        author = "@GISELLEBAUMET"
+        # author = "@GISELLEBAUMET"
+        author = None
         if author:
             insta_handle_y = line_y + 36
             author_y = line_y + 12
 
-            c.setFont("Poppins-Light", 18)
+            c.setFont("Poppins-Regular", 18)
             c.setFillColor(colors_utils.LIGHTBLACK)
             c.drawString(self.margin, insta_handle_y, signature)
             
-            c.setFont("Poppins-Light", 14)
+            c.setFont("Poppins-Regular", 14)
             c.setFillColor(colors_utils.LIGHTBLACK)
             c.drawString(self.margin, author_y, f"based on video tutorials by {author}")
         else:
