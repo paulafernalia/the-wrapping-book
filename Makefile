@@ -10,7 +10,7 @@ post:
 	uv run generate_post.py $(POST_OUTPUT_DIR) $$carryname
 
 black:
-	uv tool run black *.py
+	uv tool run black **/*.py
 
 
 make extract-steps:
