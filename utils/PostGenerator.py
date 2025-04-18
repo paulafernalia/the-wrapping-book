@@ -61,7 +61,7 @@ class PostGenerator(BaseContentGenerator.BaseContentGenerator):
             bool: True if page was created successfully, False otherwise
         """
         # Add background and overlay
-        image_path = os.path.join("covers", f"{self.carry.name}.png")
+        image_path = os.path.join("covers", f"{self.carry.name}.svg")
 
         # Set background color
         self._set_background_color(c)

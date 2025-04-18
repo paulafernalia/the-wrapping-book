@@ -71,7 +71,7 @@ class BaseContentGenerator:
             image_path (str): Path to the background image
         """
         hex_color = colors_utils.rgb_to_hex(color)
-        img = image_utils.transform_svg_cover(os.path.join("tutorials", "drawing_cover.svg"), hex_color)
+        img = image_utils.transform_svg_cover(os.path.join(image_path), hex_color)
 
         img_width, img_height = img.getSize()            
 

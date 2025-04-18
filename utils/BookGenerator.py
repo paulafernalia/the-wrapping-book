@@ -141,7 +141,7 @@ class BookGenerator(BaseContentGenerator.BaseContentGenerator):
         self._create_background_rectangle(c)
 
         # Add background and overlay
-        image_path = os.path.join("covers", f"{carry.name}.png")
+        image_path = os.path.join("covers", f"{carry.name}.svg")
 
         w = (self.width - 2 * self.margin) * 0.6
         h = (self.height - 2 * self.margin) * 0.6

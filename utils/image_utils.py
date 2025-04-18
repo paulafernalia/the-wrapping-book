@@ -37,8 +37,11 @@ def transform_svg_cover(svg_path, target_color, init_color="ff0000"):
     Returns:
     - PIL.Image object with transparent background
     """
-    with open(svg_path, "r", encoding="utf-8") as f:
-        svg_content = f.read()
+    try:
+        with open(svg_path, "r", encoding="utf-8") as f:
+            svg_content = f.read()
+    except FileNotFoundError:
+        raise FileNotFoundError(f"The file {svg_path} does not exist.")
     
     # Replace the initial color with the target color
     updated_content = svg_content.replace(init_color, target_color)
