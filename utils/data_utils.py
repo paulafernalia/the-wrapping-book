@@ -84,6 +84,9 @@ def format_size(size: int):
     if size == 0:
         return "BASE"
 
+    if size > 0:
+        return f"BASE + {size}"
+
     return f"BASE {size}"
 
 def format_difficulty(difficulty: int):

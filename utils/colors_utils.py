@@ -8,6 +8,9 @@ BACKPOSTLINE =  (100 / 255, 87 / 255, 69 / 255)
 
 BOOKLINECOLOR = (100 / 255, 87 / 255, 69 / 255)
 
+BOOKRECT = (237 / 255, 235 / 255, 232 / 255)
+BOOKCOVER = (158 / 255, 154 / 255, 149 / 255)
+
 def rgb_to_hex(rgb):
     """
     Convert an RGB tuple with values from 0-1 to a hex string (e.g., '645745').

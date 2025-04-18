@@ -177,7 +177,7 @@ class BaseContentGenerator:
         
         # Add the text
         sizepos_text_y = self.height * 2.15 / 3
-        c.setFont("Poppins-Light", 20)
+        c.setFont("Poppins-Regular", 24)
         c.drawString(self.margin, sizepos_text_y, f"{carry.position} | {carry.size}")
 
 
