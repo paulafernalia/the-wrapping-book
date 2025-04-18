@@ -9,7 +9,9 @@ def main(output_dir, carryname):
     # Create generator and cover page
     carry = db_utils.get_carry_by_name(carryname)
     if carry is None:
-        raise ValueError(f"Carry with a tutorial and name {carryname} not found in the database")
+        raise ValueError(
+            f"Carry with a tutorial and name {carryname} not found in the database"
+        )
     generator = PostGenerator.PostGenerator(output_dir, carry)
 
     generator.generate_post()

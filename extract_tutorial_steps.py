@@ -35,10 +35,12 @@ def extract_steps_to_png(tutorial_dir, carryname):
 
                 page.mediabox.upper_left = [
                     STARTX + i * (WIDTH + BUFFERX),
-                    STARTY - j * HEIGHT]
+                    STARTY - j * HEIGHT,
+                ]
                 page.mediabox.lower_right = [
                     STARTX + (i + 1) * WIDTH + i * BUFFERX,
-                    STARTY - (j + 1) * HEIGHT]
+                    STARTY - (j + 1) * HEIGHT,
+                ]
 
                 pdf_writer = PdfWriter()
                 pdf_writer.add_page(page)
@@ -47,9 +49,8 @@ def extract_steps_to_png(tutorial_dir, carryname):
                 pdf_writer.write(step_pdf_filename)
 
                 image = convert_from_path(
-                    step_pdf_filename,
-                    dpi=300,
-                    poppler_path="/opt/homebrew/bin/")[0]
+                    step_pdf_filename, dpi=300, poppler_path="/opt/homebrew/bin/"
+                )[0]
 
                 os.remove(step_pdf_filename)
 
@@ -91,5 +92,3 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     extract_steps_to_png(args.output_dir, args.carryname)
-
-

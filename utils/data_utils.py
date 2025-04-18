@@ -36,7 +36,7 @@ FINISHES = [
 ]
 
 
-MMPOSITIONS={
+MMPOSITIONS = {
     -1: "Follow tutorial for MM start position",
     0: "MM starts centred",
     6: "MM starts 0.5 DH off centre",
@@ -48,7 +48,7 @@ MMPOSITIONS={
     5: "MM starts under your armpit",
 }
 
-DIFFICULTY={
+DIFFICULTY = {
     1: "Beginner",
     2: "Beginner+",
     3: "Intermediate",
@@ -66,6 +66,7 @@ class Carry:
         self.size = format_size(size)
         self.difficulty = format_difficulty(difficulty)
 
+
 def split_title(title: str):
     title_lower = title.lower()
 
@@ -75,10 +76,11 @@ def split_title(title: str):
         if finish_lower in title_lower:
             index = title_lower.index(finish_lower)
             before = title[:index]
-            after = title[index + len(finish):]
+            after = title[index + len(finish) :]
             return before, finish
 
     return title, ""
+
 
 def format_size(size: int):
     if size == 0:
@@ -89,12 +91,15 @@ def format_size(size: int):
 
     return f"BASE {size}"
 
+
 def format_difficulty(difficulty: int):
     diff_int = round(difficulty)
     return f"Difficulty: {DIFFICULTY[diff_int]}"
 
+
 def format_position(position: str):
     return f"{position.upper()} CARRY"
+
 
 def format_mmposition(mmposition: int):
     return MMPOSITIONS[mmposition]

@@ -2,6 +2,7 @@ import os
 import qrcode
 from utils import colors_utils
 
+
 # Data to be encoded
 def generate_qr(carryname):
     # Create QR code object
@@ -17,10 +18,7 @@ def generate_qr(carryname):
     qr.make(fit=True)
 
     # Create an image from the QR code
-    img = qr.make_image(
-        fill=colors_utils.LIGHTBLACK,
-        back_color='white'
-    )
+    img = qr.make_image(fill=colors_utils.LIGHTBLACK, back_color="white")
 
     # Save the image to a file
     os.makedirs("qrcodes", exist_ok=True)

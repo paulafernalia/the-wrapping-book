@@ -48,15 +48,14 @@ class PostGenerator(BaseContentGenerator.BaseContentGenerator):
         if os.path.exists(output_full_path):
             os.remove(output_full_path)
 
-
     def _create_cover_page(self, c):
         """
         Generate a single cover page for a carry on the given canvas.
-        
+
         Args:
             c (canvas): The ReportLab canvas to draw on
             carry: Object containing carry information
-            
+
         Returns:
             bool: True if page was created successfully, False otherwise
         """
@@ -71,10 +70,13 @@ class PostGenerator(BaseContentGenerator.BaseContentGenerator):
         x = (self.width) / 2 - 3 * self.margin
         y = (self.height) / 2 - 4.5 * self.margin
         self._draw_background_image(c, image_path, self.cover_line_color, w, h, x, y)
-        
+
         # # Add text content
         self._add_title(
-            c, self.carry, text_color=self.title_text_color, frame_height=2 * self.margin
+            c,
+            self.carry,
+            text_color=self.title_text_color,
+            frame_height=2 * self.margin,
         )
 
         # # Draw border rectangle
@@ -89,27 +91,29 @@ class PostGenerator(BaseContentGenerator.BaseContentGenerator):
     def _create_tutorial_pages_for_carry(self, c):
         """
         Generate pages for the picture tutorial of the carry
-        
+
         Args:
             c (canvas): The ReportLab canvas to draw on
             carry: Object containing carry information
-            
+
         Returns:
             bool: True if pages were created successfully, False otherwise
         """
         # Get images from bucket
-        results = db_utils.get_tutorial_steps_by_carry(self.carry.name)['data']
+        results = db_utils.get_tutorial_steps_by_carry(self.carry.name)["data"]
         urls = [step["url"] for step in results]
-        
+
         # Calculate page layout
         num_pages = self._calculate_pages_needed(urls)
         image_width, image_height, gap_x = self._calculate_grid_layout()
-        
+
         # Create pages with grid layout
         for page_index in range(num_pages):
             self.page += 1
             c.showPage()
-            self._create_tutorial_grid_page(c, urls, page_index, self.carry, image_width, image_height, gap_x)
+            self._create_tutorial_grid_page(
+                c, urls, page_index, self.carry, image_width, image_height, gap_x
+            )
             # Draw header and footer
             self._draw_page_header(c, self.carry, self.height - self.margin)
             self._draw_page_footer(c)
@@ -117,7 +121,7 @@ class PostGenerator(BaseContentGenerator.BaseContentGenerator):
     def _draw_page_header(self, c, carry, line_y):
         """
         Draw the page header with title, finish text and horizontal line
-        
+
         Args:
             c (canvas): The ReportLab canvas to draw on
             carry: Object containing carry information
@@ -126,24 +130,30 @@ class PostGenerator(BaseContentGenerator.BaseContentGenerator):
         # Draw horizontal line at the top
         # line = HorizontalLine(width=self.width - self.margin, thickness=1)
         # line.drawOn(c, self.margin / 2, line_y)
-        
+
         # Header text position - slightly above the line
         header_y = line_y + 30
         header_font = "NotoSerifDisplay-Italic"
         header_font_size = 14
-        
+
         # Set font and draw header text
         c.setFont(header_font, header_font_size)
         c.setFillColor(colors_utils.BACKPOSTLINE)
         c.drawString(self.margin / 2, header_y, carry.title)  # Left-aligned title
-        c.drawRightString(self.width - self.margin / 2, header_y, carry.finish)  # Right-aligned finish
+        c.drawRightString(
+            self.width - self.margin / 2, header_y, carry.finish
+        )  # Right-aligned finish
 
         # Draw short horizontal line
         line = HorizontalLine.HorizontalLine(
-            width=self.width / 2 - self.margin / 2, thickness=1, color=colors_utils.BACKPOSTLINE
+            width=self.width / 2 - self.margin / 2,
+            thickness=1,
+            color=colors_utils.BACKPOSTLINE,
         )
         line.drawOn(c, 0, self.height - self.margin / 1.5)
-        line.drawOn(c, self.width / 2 + self.margin / 2, self.height - self.margin / 1.5)
+        line.drawOn(
+            c, self.width / 2 + self.margin / 2, self.height - self.margin / 1.5
+        )
 
         page_number_y = self.height - 55
         c.setFillColor(colors_utils.BACKPOSTLINE)
@@ -153,26 +163,29 @@ class PostGenerator(BaseContentGenerator.BaseContentGenerator):
     def _draw_page_footer(self, c):
         """
         Draw the page footer with page number and horizontal line
-        
+
         Args:
             c (canvas): The ReportLab canvas to draw on
         """
         # Calculate positions
         line_y = 0.75 * self.margin
-        
+
         # Draw short horizontal line
-        line = HorizontalLine.HorizontalLine(width=2 * self.margin, thickness=1, color=colors_utils.BACKPOSTLINE)
+        line = HorizontalLine.HorizontalLine(
+            width=2 * self.margin, thickness=1, color=colors_utils.BACKPOSTLINE
+        )
         line.drawOn(c, self.width / 2 - self.margin, line_y)
 
         # Draw signature
         c.setFont("Poppins-Light", 12)
         c.setFillColor(colors_utils.BACKPOSTLINE)
-        c.drawCentredString(self.width / 2, line_y - 16 , SIGNATURE)
-
+        c.drawCentredString(self.width / 2, line_y - 16, SIGNATURE)
 
     def _add_signature(self, c):
         line_y = 1 * self.margin
-        line = HorizontalLine.HorizontalLine(width=self.width - 2 * self.margin - 20, thickness=1)
+        line = HorizontalLine.HorizontalLine(
+            width=self.width - 2 * self.margin - 20, thickness=1
+        )
         line.drawOn(c, self.margin, line_y)
 
         signature = SIGNATURE
@@ -185,7 +198,7 @@ class PostGenerator(BaseContentGenerator.BaseContentGenerator):
             c.setFont("Poppins-Regular", 18)
             c.setFillColor(colors_utils.LIGHTBLACK)
             c.drawString(self.margin, insta_handle_y, signature)
-            
+
             c.setFont("Poppins-Regular", 14)
             c.setFillColor(colors_utils.LIGHTBLACK)
             c.drawString(self.margin, author_y, f"based on video tutorials by {author}")
@@ -199,21 +212,20 @@ class PostGenerator(BaseContentGenerator.BaseContentGenerator):
     def _set_background_color(self, c):
         # Save the current graphics state
         c.saveState()
-        
+
         # Set the fill color for the background
         c.setFillColor(self.cover_back_color)
-        
+
         # Draw the background rectangle
         c.rect(0, 0, self.width, self.height, fill=1, stroke=0)
-        
+
         # Restore the graphics state
         c.restoreState()
-
 
     def _draw_inset_rectangle(self, c):
         """
         Draw an inset rectangle around the page.
-        
+
         Args:
             c (canvas): The ReportLab canvas to draw on
         """
@@ -221,7 +233,7 @@ class PostGenerator(BaseContentGenerator.BaseContentGenerator):
         width = self.width - 1 * self.margin
         height = self.height - 1 * self.margin
 
-        c.setLineWidth(2) 
+        c.setLineWidth(2)
 
         r, g, b = self.cover_line_color
         c.setStrokeColorRGB(r, g, b)
