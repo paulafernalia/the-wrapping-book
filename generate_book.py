@@ -1,6 +1,4 @@
-from utils import BookGenerator
-from utils import db_utils
-from utils import data_utils
+from utils import BookGenerator, db_utils
 
 
 def main():
