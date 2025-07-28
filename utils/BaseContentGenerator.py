@@ -1,19 +1,17 @@
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import A4
-from reportlab.lib.utils import ImageReader
-from reportlab.lib.units import inch
-from reportlab.platypus import Paragraph, Spacer, Frame
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.pdfbase import pdfmetrics
-import requests
-import os
 import io
+import os
+
+import requests
 from PIL import Image
-from utils import image_utils
-from utils import qr_utils
-from utils import fonts
-from utils import colors_utils
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+from reportlab.lib.units import inch
+from reportlab.lib.utils import ImageReader
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.platypus import Frame, Paragraph, Spacer
+
+from utils import colors_utils, fonts, image_utils
 
 
 class BaseContentGenerator:

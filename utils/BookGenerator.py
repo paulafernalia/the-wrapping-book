@@ -1,16 +1,26 @@
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import A4
-from reportlab.lib.utils import ImageReader
+import math
 import os
-from utils import colors_utils
-from utils import db_utils
-from utils import qr_utils
-from utils import BaseContentGenerator
-from utils import HorizontalLine
 import shutil
+
+from reportlab.lib.utils import ImageReader
+from reportlab.pdfgen import canvas
+
+from utils import BaseContentGenerator, HorizontalLine, colors_utils, db_utils, qr_utils
 
 
 class BookGenerator(BaseContentGenerator.BaseContentGenerator):
+    def _infer_pagination(self, carries):
+        carry_pages = {}
+        for carry in carries:
+            steps = db_utils.count_steps(carry)
+            pages = math.ceil(steps / 9) + 1
+            if pages % 2 == 1:
+                pages += 1
+
+            carry_pages[carry.name] = pages
+
+        return carry_pages
+
     def _draw_page_header(self, c, carry, line_y):
         """
         Draw the page header with title, finish text and horizontal line
@@ -71,6 +81,29 @@ class BookGenerator(BaseContentGenerator.BaseContentGenerator):
 
         # Restore the graphics state
         c.restoreState()
+
+    def _create_table_of_contents(self, c, carries):
+        c.setFont("PlayfairDisplay", 24)
+        c.drawString(self.margin, self.height - self.margin - 20, "Table of contents")
+
+        carrypages = self._infer_pagination(carries)
+
+        page = 1
+        c.setFont("AndaleMono", 11)
+        for i, carry in enumerate(carries):
+            linestring = carry.title.ljust(60, ".")
+            if page < 10:
+                linestring += ".." + str(page)
+            elif page < 100:
+                linestring += "." + str(page)
+            else:
+                linestring += str(page)
+            c.drawString(
+                self.margin, self.height - 2 * self.margin - 17 * i, linestring
+            )
+            page += carrypages[carry.name]
+
+        c.showPage()
 
     def _add_carry_qr(self, c, carry_name):
         # Load the image
@@ -217,10 +250,14 @@ class BookGenerator(BaseContentGenerator.BaseContentGenerator):
         # Create canvas for the combined PDF
         c = canvas.Canvas(output_full_path, pagesize=self.page_size)
 
+        # Create table of contents
+        self._create_table_of_contents(c, carries)
+
         # For each carry, create a page
         for i, carry in enumerate(carries):
             # Generate page content
             print(f"-Generate {carry.name}")
+
             self.page += 1
             self._create_cover_page_for_carry(c, carry)
             self._create_tutorial_pages_for_carry(c, carry)

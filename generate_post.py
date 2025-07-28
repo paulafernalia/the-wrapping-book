@@ -1,17 +1,14 @@
 import argparse
-from utils import fonts
-from utils import PostGenerator
-from utils import db_utils
-from utils import data_utils
+
+from utils import PostGenerator, db_utils
 
 
 def main(output_dir, carryname):
     # Create generator and cover page
     carry = db_utils.get_carry_by_name(carryname)
     if carry is None:
-        raise ValueError(
-            f"Carry with a tutorial and name {carryname} not found in the database"
-        )
+        print(carryname)
+        raise ValueError("Carry with a tutorial and name not found in the database")
     generator = PostGenerator.PostGenerator(output_dir, carry)
 
     generator.generate_post()
