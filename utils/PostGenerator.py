@@ -1,13 +1,15 @@
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import A4
-from reportlab.lib.units import inch
 import os
-from utils import colors_utils
-from utils import db_utils
-from utils import image_utils
-from utils import BaseContentGenerator
-from utils import HorizontalLine
 
+from reportlab.lib.units import inch
+from reportlab.pdfgen import canvas
+
+from utils import (
+    BaseContentGenerator,
+    HorizontalLine,
+    colors_utils,
+    db_utils,
+    image_utils,
+)
 
 SIGNATURE = "@PAULAFERMINCUETO"
 
@@ -233,7 +235,7 @@ class PostGenerator(BaseContentGenerator.BaseContentGenerator):
         width = self.width - 1 * self.margin
         height = self.height - 1 * self.margin
 
-        c.setLineWidth(2)
+        c.setLineWidth(4)
 
         r, g, b = self.cover_line_color
         c.setStrokeColorRGB(r, g, b)
