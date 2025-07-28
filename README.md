@@ -30,9 +30,10 @@ cd the-wrapping-book
 
 Create a `.env` file in the root directory and add the following variables:
 ```bash
-SUPABASE_URL=your-supabase-url
-SUPABASE_KEY=your-supabase-key
-SUPABASE_BUCKET=your-supabase-bucket
+AWS_ACCESS_KEY_ID=your-access-key-id
+AWS_SECRET_ACCESS_KEY=your-secret-access-key
+AWS_REGION=us-east-1
+AWS_S3_BUCKET_NAME=your-bucket-name
 ```
 
 Generate the book* by running:
@@ -45,9 +46,9 @@ Generate a post* by running:
 ```
 make post
 ```
-* This assumes the steps exist in supabase and a cover in SVG exists in `covers/`
+* This assumes the steps exist in AWS S3 and a cover in SVG exists in `covers/`
 
-Extract steps from a tutorial and upload them to supabase (also mark tutorial as available in table) with:
+Extract steps from a tutorial (pdf file) and upload them to AWS S3 (also mark tutorial as available in table in supabase) with:
 ```
 make extract-steps
 ```
